@@ -1,3 +1,79 @@
 #!/bin/bash
 
-echo "Hello World"
+help() {
+cat << END
+$0 [opciók]
+
+ -s		Saját adatok letöltése.
+ -b		Letöltött adatok kiíratása.
+ -m		Adatok szűrése, ip cím és hostname kiíratása.
+ -o <ip>	Megadott ip címről adatok letöltése.
+END
+}
+
+sajat_ip() {
+ curl ipinfo.io --silent -o response.json
+}
+
+masik_ip() {
+ curl ipinfo.io/$1 --silent -o response.json
+}
+
+beolvas() {
+ if [ -f response.json ]
+ then
+  cat response.json | jq
+ else
+  echo "Nincs response.json fájl!"
+  exit 1
+ fi
+}
+
+szur() {
+ if [ -f response.json ]
+ then
+  ip=$(cat response.json | jq .ip | tr -d "\"")
+  hostname=$(cat response.json | jq .hostname | tr -d "\"")
+  echo "Ip cím: $ip"
+  echo "Hostname: $hostname"
+ else
+  echo "Nincs response.json fájl!"
+  exit 1
+ fi
+}
+
+while getopts :hsbmo: PARAM
+do
+ case $PARAM in
+  o)
+   ip=$OPTARG
+   masik_ip $ip
+   echo "Adatok a(z) $ip címről letöltve!"
+   exit
+   ;;
+  h)
+   help
+   exit
+   ;;
+  s)
+   sajat_ip
+   echo "Saját adatok letöltve."
+   exit
+   ;;
+  b)
+   beolvas
+   ;;
+  m)
+   szur
+   ;;
+  :)
+   echo "$OPTARG vár paramétert!"
+   exit 1
+   ;;
+  *)
+   echo "Érvénytelen paarméter!"
+   exit 1
+   ;;
+ esac
+done
+shift $(($OPTIND-1))
