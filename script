@@ -4,19 +4,36 @@ help() {
 cat << END
 $0 [opciók]
 
- -s		Saját adatok letöltése.
- -b		Letöltött adatok kiíratása.
+ -q		Mai dátum kiírása formázva.
+ -w	 	A korod kiszámítása.
  -m		Adatok szűrése, ip cím és hostname kiíratása.
  -o <ip>	Megadott ip címről adatok letöltése.
 END
 }
 
-sajat_ip() {
- curl ipinfo.io --silent -o response.json
+maidatum() {
+  now=$(date +%Y-%m-%d/%T)
+  echo  $now
+  exit
 }
 
-masik_ip() {
- curl ipinfo.io/$1 --silent -o response.json
+kor() {
+read -p "Add meg a születési éved: " year
+read -p "Add meg a születési hónapod: " month
+
+yearnow=$(date '+%Y')
+monthnow=$(date '+%m')
+
+agey=$(($yearnow-$year))
+agem=$(($monthnow-$month))
+
+if [ $agem -lt 0 ] ; then
+   agem=$(($monthnow-$month+12))
+else
+   agem=$(($monthnow-$month))
+fi
+echo "$agey éves és $agem hónapos vagy!"
+exit
 }
 
 beolvas() {
@@ -42,26 +59,21 @@ szur() {
  fi
 }
 
-while getopts :hsbmo: PARAM
+while getopts :hqwmo: PARAM
 do
  case $PARAM in
   o)
-   ip=$OPTARG
-   masik_ip $ip
-   echo "Adatok a(z) $ip címről letöltve!"
    exit
    ;;
   h)
    help
    exit
    ;;
-  s)
-   sajat_ip
-   echo "Saját adatok letöltve."
-   exit
+  q)
+   maidatum
    ;;
-  b)
-   beolvas
+  w)
+   kor
    ;;
   m)
    szur
