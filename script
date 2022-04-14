@@ -6,9 +6,19 @@ $0 [opciók]
 
  -q		Mai dátum kiírása formázva.
  -w	 	A korod kiszámítása.
- -m		Adatok szűrése, ip cím és hostname kiíratása.
- -o <ip>	Megadott ip címről adatok letöltése.
+ -e 		Egy random rossz dad joke.
+ -r <string>	megnézni mennyiszer szerepel az input amit megadsz a viccbe.
+ -t  		About me.
+ -z		Kiirja a dad joke ot, de előtte leellenőrni, hogy egyáltalán van-e.
+ -u <string>	Megvizsgálja van-e olyan szó amit bekérsz.
 END
+}
+
+rolam(){
+ echo "Mihály Balázs"
+ echo "D05D90"
+ echo "Course: Programtervező Informatikus EKKE" 
+ exit
 }
 
 maidatum() {
@@ -36,30 +46,13 @@ echo "$agey éves és $agem hónapos vagy!"
 exit
 }
 
-beolvas() {
- if [ -f response.json ]
- then
-  cat response.json | jq
- else
-  echo "Nincs response.json fájl!"
-  exit 1
- fi
+megszamol() {
+SZO=$1
+cat 'respone.json' | grep -o $SZO | wc -l
+exit
 }
 
-szur() {
- if [ -f response.json ]
- then
-  ip=$(cat response.json | jq .ip | tr -d "\"")
-  hostname=$(cat response.json | jq .hostname | tr -d "\"")
-  echo "Ip cím: $ip"
-  echo "Hostname: $hostname"
- else
-  echo "Nincs response.json fájl!"
-  exit 1
- fi
-}
-
-while getopts :hqwmo: PARAM
+while getopts :hqwertzu:o: PARAM
 do
  case $PARAM in
   o)
@@ -75,15 +68,36 @@ do
   w)
    kor
    ;;
-  m)
-   szur
+  e)
+   curl -H "Accept: application/json" https://icanhazdadjoke.com/ -o respone.json
+   exit
+   ;;
+  r)
+   megszamol
+   exit
+   ;;
+  t)
+   rolam
+   ;;
+  z)
+   if [ ! -f $file ]
+   then
+     echo "Nem létezik"
+   else
+     cat respone.json
+   fi
+   exit
+   ;;
+  u)
+   grep $1 respone.json
+   exit
    ;;
   :)
    echo "$OPTARG vár paramétert!"
    exit 1
    ;;
   *)
-   echo "Érvénytelen paarméter!"
+   echo "Érvénytelen paraméter!"
    exit 1
    ;;
  esac
